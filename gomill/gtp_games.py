@@ -167,6 +167,26 @@ def describe_scoring(result, game_score):
     return "\n".join(l)
 
 
+def get_random_katago_gtp_commands():
+    import random
+    commands = []
+    rules = [
+        "tromp-taylor",
+        "chinese",
+        "chinese-ogs",
+        "chinese-kgs",
+        "japanese",
+        "korean",
+        "stone-scoring",
+        "aga",
+        "bga",
+        "new-zealand",
+        "aga-button",
+    ]
+    commands.append(("kata-set-rules", random.choice(rules)))
+    commands.append(("komi", random.choice(["5.5", "6.5", "7.5"])))
+    return commands
+
 class _Gtp_backend(gameplay.Backend):
     """Concrete implementation of gameplay.Backend for GTP.
 
@@ -193,10 +213,13 @@ class _Gtp_backend(gameplay.Backend):
         assert board_size == self.board_size
         assert komi == self.komi
         self.gc.set_cautious_mode(False)
+        random_commands = get_random_katago_gtp_commands()
         for colour in "b", "w":
             self.gc.send_command(colour, "boardsize", str(board_size))
             self.gc.send_command(colour, "clear_board")
             self.gc.send_command(colour, "komi", str(komi))
+            for cmd, args in random_commands:
+                self.gc.send_command(colour, cmd, args)
 
     def end_game(self):
         self.gc.set_cautious_mode(True)

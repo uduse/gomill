@@ -550,6 +550,23 @@ class Ringmaster(object):
         sr = self.presenter.get_stream('screen_report')
         if self.void_game_count > 0:
             print >>sr, "%d void games; see log file." % self.void_game_count
+
+        import os
+        from collections import Counter
+
+        games = []
+        for dir in os.listdir("gomill.games"):
+            with open("gomill.games/" + dir) as f:
+                lines = f.read().splitlines()
+            lines = lines[10:]
+            data = "\t".join(lines)
+            games.append(data)
+
+        s = "Num Games: " + str(len(games)) + "\n" \
+            + "Unique Games: " + str(len(set(games))) + "\n" \
+            + "Frequencies: " + str(Counter(Counter(games).values())) + "\n\n"
+        print >>sr, s
+
         self.competition.write_screen_report(sr)
         sr.close()
 
@@ -576,6 +593,10 @@ class Ringmaster(object):
         """Job supply function for the job manager."""
         job = self._get_job()
         self._update_display()
+        try:
+            self.log("Rule: " + str(job.player_w.cmd_args) + str(job.player_b.cmd_args))
+        except Exception as e:
+            pass
         return job
 
     def _get_job(self):
